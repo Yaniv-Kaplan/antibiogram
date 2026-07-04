@@ -22,22 +22,15 @@ for (const f of FAMILIES) (ANTIBIOTICS_BY_FAMILY[f.id] ?? []).forEach((a, i) => 
 
 const laneCount = (familyId: string) => Math.max(1, ANTIBIOTICS_BY_FAMILY[familyId]?.length ?? 1)
 
-// Every family row is the SAME height. To still stack overlapping drugs without
-// overlap, each family is divided into SUBROWS fine grid rows (the LCM of all
-// lane counts), and an antibiotic occupies SUBROWS / laneCount of them. So a
-// 1-drug family is one full-height bar, a 3-drug family is three equal thirds —
-// all families end up exactly SUBROWS sub-rows tall.
-const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a)
-const lcm = (a: number, b: number): number => (a / gcd(a, b)) * b
-const SUBROWS = FAMILIES.map((f) => laneCount(f.id)).reduce(lcm, 1)
-
-/** First grid-row line for each family (header occupies rows 1–2). */
+// Each antibiotic gets one full-height lane. Single-drug families are one lane
+// (the shared minimal height); families with several drugs grow taller, one
+// lane per drug, so the bars stay readable rather than being squeezed.
 const FAMILY_START_ROW: Record<string, number> = {}
 {
   let row = 3
   for (const f of FAMILIES) {
     FAMILY_START_ROW[f.id] = row
-    row += SUBROWS
+    row += laneCount(f.id)
   }
 }
 
@@ -66,8 +59,7 @@ interface Bar {
   status: 'correct' | 'missed'
   startCol: number
   span: number
-  rowStart: number
-  rowSpan: number
+  row: number
 }
 
 function statusOf(
@@ -84,9 +76,8 @@ function statusOf(
 function buildBars(board: Record<string, PlacedChip[]>): Bar[] {
   const bars: Bar[] = []
   for (const family of FAMILIES) {
-    const unit = SUBROWS / laneCount(family.id) // sub-rows per antibiotic lane
     for (const antibiotic of ANTIBIOTICS_BY_FAMILY[family.id] ?? []) {
-      const rowStart = FAMILY_START_ROW[family.id] + LANE_OF[antibiotic.id] * unit
+      const rowLine = FAMILY_START_ROW[family.id] + LANE_OF[antibiotic.id]
       let i = 0
       while (i < GERMS.length) {
         const status = statusOf(board, family.id, GERMS[i].id, antibiotic.id)
@@ -103,8 +94,7 @@ function buildBars(board: Record<string, PlacedChip[]>): Bar[] {
           status,
           startCol: 2 + i,
           span: j - i,
-          rowStart,
-          rowSpan: unit,
+          row: rowLine,
         })
         i = j
       }
@@ -147,14 +137,15 @@ export function Grid({ board, feedback, activeFamilyId }: Props) {
           </div>
         ))}
 
-        {/* Row labels + droppable cells (each family is SUBROWS tall — equal height) */}
+        {/* Row labels + droppable cells (each family spans one lane per drug) */}
         {FAMILIES.map((family) => {
           const start = FAMILY_START_ROW[family.id]
+          const span = laneCount(family.id)
           return (
             <div key={family.id} style={{ display: 'contents' }}>
               <div
                 className="row-label"
-                style={{ gridColumn: 1, gridRow: `${start} / span ${SUBROWS}` }}
+                style={{ gridColumn: 1, gridRow: `${start} / span ${span}` }}
                 title={family.label}
               >
                 <span>{family.label}</span>
@@ -168,7 +159,7 @@ export function Grid({ board, feedback, activeFamilyId }: Props) {
                   wrongName={
                     isWrongCell(family.id, germ.id) ? ANTIBIOTIC_BY_ID[feedback!.antibioticId].name : undefined
                   }
-                  style={{ gridColumn: 2 + i, gridRow: `${start} / span ${SUBROWS}` }}
+                  style={{ gridColumn: 2 + i, gridRow: `${start} / span ${span}` }}
                 />
               ))}
             </div>
@@ -180,11 +171,7 @@ export function Grid({ board, feedback, activeFamilyId }: Props) {
           <div
             key={bar.key}
             className={`bar bar--${bar.status}`}
-            style={{
-              gridColumn: `${bar.startCol} / span ${bar.span}`,
-              gridRow: `${bar.rowStart} / span ${bar.rowSpan}`,
-              background: `var(${bar.colorVar})`,
-            }}
+            style={{ gridColumn: `${bar.startCol} / span ${bar.span}`, gridRow: bar.row, background: `var(${bar.colorVar})` }}
             title={bar.name}
           >
             <span className="bar-label">{bar.name}</span>

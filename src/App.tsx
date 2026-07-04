@@ -14,7 +14,13 @@ import { ANTIBIOTIC_BY_ID, ANTIBIOTICS, FAMILY_BY_ID } from './data/antibiogram'
 import { useGame } from './game/useGame'
 import { fireConfetti } from './game/confetti'
 import { aggregateMistakes } from './game/scoring'
-import { loadMistakeCounts, loadSettings, recordMistakes, saveSettings } from './game/persistence'
+import {
+  loadMistakeCounts,
+  loadSettings,
+  recordMistakes,
+  saveGameToHistory,
+  saveSettings,
+} from './game/persistence'
 import type { Settings } from './game/types'
 import { TopBar } from './components/TopBar'
 import { Grid } from './components/Grid'
@@ -58,7 +64,8 @@ export default function App() {
     }
   }, [state.phase, start, settings])
 
-  // On finishing a session, snapshot prior counts then persist this game's mistakes.
+  // On finishing a session, snapshot prior counts, persist this game's mistakes,
+  // and save the game to history (skip games with no activity).
   const prevCounts = useRef<Record<string, number>>({})
   const recorded = useRef(false)
   useEffect(() => {
@@ -66,9 +73,17 @@ export default function App() {
       recorded.current = true
       prevCounts.current = loadMistakeCounts()
       recordMistakes(state.mistakes)
+      if (state.stats.attempted > 0 || state.stats.skippedRounds > 0) {
+        saveGameToHistory({
+          at: Date.now(),
+          stats: state.stats,
+          remaining: state.deck.length,
+          mistakes: state.mistakes,
+        })
+      }
     }
     if (state.phase === 'playing') recorded.current = false
-  }, [state.phase, state.mistakes])
+  }, [state.phase, state.mistakes, state.stats, state.deck.length])
 
   function handleDragStart(e: DragStartEvent) {
     const id = e.active.data.current?.antibioticId as string | undefined

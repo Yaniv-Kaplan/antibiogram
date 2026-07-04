@@ -52,7 +52,7 @@
   /* Layout tokens */
   --cell-w: 116px;
   --cell-h: 46px;
-  --rowlabel-w: 210px;
+  --rowlabel-w: 224px;
   --radius: 8px;
   --radius-sm: 5px;
   --shadow-1: 0 1px 2px rgba(18, 24, 38, 0.08), 0 1px 3px rgba(18, 24, 38, 0.06);

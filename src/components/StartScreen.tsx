@@ -3,9 +3,10 @@ import { ANTIBIOTICS } from '../data/antibiogram'
 interface Props {
   onStart: () => void
   onOpenSettings: () => void
+  onStudy: () => void
 }
 
-export function StartScreen({ onStart, onOpenSettings }: Props) {
+export function StartScreen({ onStart, onOpenSettings, onStudy }: Props) {
   return (
     <div className="startscreen">
       <div className="start-card">
@@ -23,6 +24,9 @@ export function StartScreen({ onStart, onOpenSettings }: Props) {
         <div className="start-actions">
           <button className="btn btn--primary btn--lg" onClick={onStart}>
             Start ({ANTIBIOTICS.length} antibiotics)
+          </button>
+          <button className="btn btn--ghost" onClick={onStudy}>
+            Study reference
           </button>
           <button className="btn btn--ghost" onClick={onOpenSettings}>
             Settings

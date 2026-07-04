@@ -20,6 +20,7 @@ import { Grid } from './components/Grid'
 import { Tray } from './components/Tray'
 import { FeedbackBanner } from './components/FeedbackBanner'
 import { StartScreen } from './components/StartScreen'
+import { StudyReference } from './components/StudyReference'
 import { EndScreen } from './components/EndScreen'
 import { SettingsPanel } from './components/Settings'
 import { Legend } from './components/Legend'
@@ -28,6 +29,7 @@ export default function App() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings())
   const { state, start, drop, cont, tryAgain, reveal, skip, end, setSettings: syncSettings } = useGame(settings)
   const [showSettings, setShowSettings] = useState(false)
+  const [showStudy, setShowStudy] = useState(false)
   const [dragName, setDragName] = useState<string | null>(null)
 
   const sensors = useSensors(
@@ -78,9 +80,16 @@ export default function App() {
   }
 
   if (state.phase === 'start') {
+    if (showStudy) {
+      return <StudyReference layout={settings.layout} onBack={() => setShowStudy(false)} />
+    }
     return (
       <>
-        <StartScreen onStart={() => start(settings)} onOpenSettings={() => setShowSettings(true)} />
+        <StartScreen
+          onStart={() => start(settings)}
+          onOpenSettings={() => setShowSettings(true)}
+          onStudy={() => setShowStudy(true)}
+        />
         {showSettings && (
           <SettingsPanel settings={settings} onChange={setSettings} onClose={() => setShowSettings(false)} />
         )}

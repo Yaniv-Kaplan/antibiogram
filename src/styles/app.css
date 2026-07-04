@@ -99,7 +99,7 @@
 .app[data-layout='compact'] {
   --cell-w: 96px;
   --cell-h: 26px;
-  --rowlabel-w: 150px;
+  --rowlabel-w: 176px;
   --group-h: 22px;
   --germ-h: 38px;
 }
@@ -117,7 +117,7 @@
   max-height: none;
 }
 .app[data-layout='compact'] .row-label {
-  font-size: 10.5px;
+  font-size: 10px;
   padding: 2px 8px;
 }
 .app[data-layout='compact'] .germ-head {
@@ -256,11 +256,13 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--fg);
-  min-height: var(--cell-h);
 }
-.row-label--active {
-  background: var(--accent-soft);
-  color: var(--accent);
+/* Single line, never wraps — keeps every row an equal, fixed height. */
+.row-label span {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cell {

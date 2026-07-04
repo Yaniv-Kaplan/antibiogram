@@ -145,8 +145,12 @@ export function Grid({ board, feedback, activeFamilyId }: Props) {
           const span = laneCount(family.id)
           return (
             <div key={family.id} style={{ display: 'contents' }}>
-              <div className="row-label" style={{ gridColumn: 1, gridRow: `${start} / span ${span}` }}>
-                {family.label}
+              <div
+                className="row-label"
+                style={{ gridColumn: 1, gridRow: `${start} / span ${span}` }}
+                title={family.label}
+              >
+                <span>{family.label}</span>
               </div>
               {GERMS.map((germ, i) => (
                 <Cell

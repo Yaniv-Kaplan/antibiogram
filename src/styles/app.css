@@ -740,11 +740,6 @@
   font-weight: 800;
   color: var(--ok);
 }
-.history-grade--low {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--fg-muted);
-}
 .history-stats {
   display: flex;
   flex-wrap: wrap;

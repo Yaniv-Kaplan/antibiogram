@@ -26,11 +26,7 @@ function GameCard({ record, index }: { record: GameRecord; index: number }) {
           <span className="history-index">#{index}</span>
           <span className="history-date">{formatDate(record.at)}</span>
         </div>
-        {showGrade ? (
-          <span className="history-grade">{grade}%</span>
-        ) : (
-          <span className="history-grade history-grade--low">below 60%</span>
-        )}
+        {showGrade && <span className="history-grade">{grade}%</span>}
       </div>
 
       <div className="history-stats">

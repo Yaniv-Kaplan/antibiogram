@@ -1,8 +1,10 @@
-import { DEFAULT_SETTINGS, type MistakeEntry, type Settings } from './types'
+import { DEFAULT_SETTINGS, type GameRecord, type MistakeEntry, type Settings } from './types'
 import { mistakeSignature } from './scoring'
 
 const SETTINGS_KEY = 'antibiogram.settings.v1'
 const MISTAKES_KEY = 'antibiogram.mistakeCounts.v1'
+const HISTORY_KEY = 'antibiogram.history.v1'
+const HISTORY_LIMIT = 100
 
 function safeParse<T>(raw: string | null, fallback: T): T {
   if (!raw) return fallback
@@ -42,4 +44,27 @@ export function recordMistakes(mistakes: MistakeEntry[]): void {
     counts[sig] = (counts[sig] ?? 0) + 1
   }
   localStorage.setItem(MISTAKES_KEY, JSON.stringify(counts))
+}
+
+/** Past games, newest first. */
+export function loadHistory(): GameRecord[] {
+  if (typeof localStorage === 'undefined') return []
+  try {
+    const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]')
+    return Array.isArray(parsed) ? (parsed as GameRecord[]) : []
+  } catch {
+    return []
+  }
+}
+
+/** Prepend a finished game to history (capped at HISTORY_LIMIT). */
+export function saveGameToHistory(record: GameRecord): void {
+  if (typeof localStorage === 'undefined') return
+  const history = [record, ...loadHistory()].slice(0, HISTORY_LIMIT)
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history))
+}
+
+export function clearHistory(): void {
+  if (typeof localStorage === 'undefined') return
+  localStorage.removeItem(HISTORY_KEY)
 }

@@ -54,6 +54,16 @@ export interface Stats {
   playedRounds: number
 }
 
+/** A finished game, saved to history. */
+export interface GameRecord {
+  /** Epoch ms when the game ended. */
+  at: number
+  stats: Stats
+  /** Antibiotics never reached (deck remaining at End). */
+  remaining: number
+  mistakes: MistakeEntry[]
+}
+
 export type GamePhase = 'start' | 'playing' | 'end'
 
 export interface GameState {

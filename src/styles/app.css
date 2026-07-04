@@ -444,13 +444,27 @@
 }
 
 /* ---- Start / End screens --------------------------------------------- */
-.startscreen,
 .endscreen {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+}
+.startscreen {
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 24px;
+}
+.home-column {
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 .start-card,
 .end-card {
@@ -461,6 +475,12 @@
   padding: 32px 34px;
   max-width: 560px;
   width: 100%;
+}
+.end-card {
+  max-width: 560px;
+}
+.start-card {
+  max-width: none;
 }
 .start-title,
 .end-title {
@@ -656,4 +676,88 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 6px;
+}
+
+/* ---- History (embedded on the home screen) ---------------------------- */
+.btn--sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+.home-history {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-2);
+  padding: 22px 24px;
+}
+.home-history-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.home-history-title {
+  margin: 0;
+  font-size: 18px;
+}
+.home-history-head .btn--sm {
+  margin-left: auto;
+}
+.history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.history-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.history-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.history-when {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.history-index {
+  font-weight: 800;
+  color: var(--accent);
+}
+.history-date {
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+.history-grade {
+  margin-left: auto;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ok);
+}
+.history-grade--low {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+.history-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--fg-muted);
+  margin-bottom: 10px;
+}
+.history-stats strong {
+  color: var(--fg);
+}
+.history-mistakes {
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
 }

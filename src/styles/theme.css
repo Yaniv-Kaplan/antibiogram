@@ -1,0 +1,84 @@
+/* ==========================================================================
+   Theme tokens. All colors live here as CSS variables — components never
+   hardcode a color, so the chart palette and any future theming stay in one
+   place. Values extracted pixel-verified from references/antibiogram.jpg.
+   ========================================================================== */
+
+:root {
+  /* Surfaces & text */
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --inset: #eef0f3;
+  --fg: #1c2230;
+  --fg-muted: #5b6472;
+  --line: #d4d9e0;
+  --line-strong: #b7bfca;
+
+  /* State */
+  --ok: #1f9d55; /* correct */
+  --ok-soft: #e3f5ea;
+  --miss: #d1642a; /* missed — warm, not alarming red */
+  --miss-soft: #fbe9dd;
+  --accent: #3a5eba;
+  --accent-soft: #e5ebfa;
+  --reveal: #f4c430; /* correct-location highlight during feedback */
+
+  /* Germ group header colors */
+  --group-gram-pos-cocci: #3a5eba;
+  --group-gram-neg-bacilli: #b00000;
+  --group-gram-neg-cocci: #7a4380;
+  --group-anaerobes: #6b5410;
+  --group-atypicals: #6e6e6e;
+  --group-header-fg: #ffffff;
+
+  /* Antibiotic-class cell-fill colors */
+  --fill-penicillin: #c9c9c9;
+  --fill-ceph-early: #e3e3e3;
+  --fill-ceph-late: #efefef;
+  --fill-bli: #cfd9ed;
+  --fill-carbapenem: #f6ddcd;
+  --fill-monobactam: #fddf84;
+  --fill-quinolone: #dcebd1;
+  --fill-aminoglycoside: #fdc37f;
+  --fill-lincosamide: #b7fef7;
+  --fill-macrolide: #fdefbd;
+  --fill-tetracycline: #fab4c5;
+  --fill-glycopeptide: #a5b8e2;
+  --fill-antimetabolite: #bcdaa4;
+  --fill-nitroimidazole: #caa753;
+  --fill-chip-fg: #1c2230;
+
+  /* Layout tokens */
+  --cell-w: 116px;
+  --cell-h: 46px;
+  --rowlabel-w: 210px;
+  --radius: 8px;
+  --radius-sm: 5px;
+  --shadow-1: 0 1px 2px rgba(18, 24, 38, 0.08), 0 1px 3px rgba(18, 24, 38, 0.06);
+  --shadow-2: 0 6px 16px rgba(18, 24, 38, 0.14);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}

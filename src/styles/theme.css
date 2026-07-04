@@ -52,6 +52,9 @@
   /* Layout tokens */
   --cell-w: 116px;
   --cell-h: 46px;
+  /* Fine grid row; each family = 6 sub-rows tall (LCM of lane counts), so all
+     family rows are exactly equal height regardless of how many drugs they hold. */
+  --sub-h: 8px;
   --rowlabel-w: 224px;
   --radius: 8px;
   --radius-sm: 5px;

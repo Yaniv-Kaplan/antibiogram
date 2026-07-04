@@ -7,10 +7,10 @@ interface Props {
   stats: Stats
   remaining: number
   mistakes: AggregatedMistake[]
-  onPlayAgain: () => void
+  onHome: () => void
 }
 
-export function EndScreen({ stats, remaining, mistakes, onPlayAgain }: Props) {
+export function EndScreen({ stats, remaining, mistakes, onHome }: Props) {
   const [showDetails, setShowDetails] = useState(false)
   const grade = computeGrade(stats)
   const showGrade = grade >= 60 && stats.attempted > 0
@@ -54,7 +54,7 @@ export function EndScreen({ stats, remaining, mistakes, onPlayAgain }: Props) {
           <button className="btn btn--ghost" onClick={() => setShowDetails((v) => !v)}>
             {showDetails ? 'Hide details' : 'More details'}
           </button>
-          <button className="btn btn--primary" onClick={onPlayAgain}>
+          <button className="btn btn--primary" onClick={onHome}>
             Play again
           </button>
         </div>

@@ -4,6 +4,7 @@ import {
   DragOverlay,
   PointerSensor,
   TouchSensor,
+  pointerWithin,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -27,7 +28,7 @@ import { Legend } from './components/Legend'
 
 export default function App() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings())
-  const { state, start, drop, cont, tryAgain, reveal, skip, end, setSettings: syncSettings } = useGame(settings)
+  const { state, start, drop, cont, tryAgain, reveal, skip, end, home, setSettings: syncSettings } = useGame(settings)
   const [showSettings, setShowSettings] = useState(false)
   const [showStudy, setShowStudy] = useState(false)
   const [dragName, setDragName] = useState<string | null>(null)
@@ -100,12 +101,7 @@ export default function App() {
   if (state.phase === 'end') {
     const mistakes = aggregateMistakes(state.mistakes, prevCounts.current)
     return (
-      <EndScreen
-        stats={state.stats}
-        remaining={state.deck.length}
-        mistakes={mistakes}
-        onPlayAgain={() => start(settings)}
-      />
+      <EndScreen stats={state.stats} remaining={state.deck.length} mistakes={mistakes} onHome={home} />
     )
   }
 
@@ -124,7 +120,12 @@ export default function App() {
         skipDisabled={!!state.feedback}
       />
 
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={pointerWithin}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
         <main className="playfield">
           <Grid board={state.board} feedback={state.feedback} activeFamilyId={round.familyId} />
         </main>

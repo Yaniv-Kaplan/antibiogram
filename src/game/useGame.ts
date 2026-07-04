@@ -12,6 +12,7 @@ type Action =
   | { type: 'reveal' }
   | { type: 'skip' }
   | { type: 'end' }
+  | { type: 'home' }
   | { type: 'setSettings'; settings: Settings }
 
 export function initialState(settings: Settings = DEFAULT_SETTINGS): GameState {
@@ -200,6 +201,10 @@ export function reducer(state: GameState, action: Action): GameState {
     case 'end':
       return { ...state, phase: 'end', round: null, feedback: null }
 
+    // Back to the home screen (keeping current settings).
+    case 'home':
+      return initialState(state.settings)
+
     default:
       return state
   }
@@ -215,7 +220,8 @@ export function useGame(settings: Settings) {
   const reveal = useCallback(() => dispatch({ type: 'reveal' }), [])
   const skip = useCallback(() => dispatch({ type: 'skip' }), [])
   const end = useCallback(() => dispatch({ type: 'end' }), [])
+  const home = useCallback(() => dispatch({ type: 'home' }), [])
   const setSettings = useCallback((s: Settings) => dispatch({ type: 'setSettings', settings: s }), [])
 
-  return { state, start, drop, cont, tryAgain, reveal, skip, end, setSettings }
+  return { state, start, drop, cont, tryAgain, reveal, skip, end, home, setSettings }
 }

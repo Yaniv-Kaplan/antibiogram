@@ -99,16 +99,24 @@
 .app[data-layout='compact'] {
   --cell-w: 96px;
   --cell-h: 26px;
+  --sub-h: 6px;
   --rowlabel-w: 176px;
   --group-h: 22px;
   --germ-h: 38px;
 }
 .app[data-layout='compact'] .bar-label {
   font-size: 9px;
+  line-height: 1;
   padding: 0 4px;
 }
 .app[data-layout='compact'] .bar {
-  margin: 1.5px;
+  margin: 1px;
+}
+.app[data-layout='compact'] .bar--correct {
+  border-width: 1.5px;
+}
+.app[data-layout='compact'] .bar--missed {
+  border-width: 1.5px;
 }
 .app[data-layout='compact'] .playfield {
   padding: 8px 12px 4px;
@@ -156,7 +164,7 @@
   display: grid;
   grid-template-columns: var(--rowlabel-w) repeat(12, var(--cell-w));
   grid-template-rows: var(--group-h) var(--germ-h);
-  grid-auto-rows: var(--cell-h);
+  grid-auto-rows: var(--sub-h);
   width: max-content;
 }
 

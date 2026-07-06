@@ -1,10 +1,26 @@
 import type { CelebrationMode, LayoutMode, Settings } from '../game/types'
+import { FAMILIES, GERM_GROUPS, GERMS } from '../data/antibiogram'
+import { shuffle } from '../game/scoring'
 
 interface Props {
   settings: Settings
   onChange: (s: Settings) => void
   onClose: () => void
 }
+
+/** Shuffle the columns while keeping each germ group's columns contiguous, so
+ *  the grouped header row stays valid. */
+function shuffledGermOrder(): string[] {
+  const order: string[] = []
+  for (const groupId of shuffle(GERM_GROUPS.map((g) => g.id))) {
+    order.push(...shuffle(GERMS.filter((g) => g.group === groupId).map((g) => g.id)))
+  }
+  return order
+}
+
+const shuffledFamilyOrder = (): string[] => shuffle(FAMILIES.map((f) => f.id))
+
+const isShuffled = (order?: string[]) => !!order && order.length > 0
 
 const LAYOUT_OPTIONS: { value: LayoutMode; label: string; hint: string }[] = [
   { value: 'compact', label: 'Compact', hint: 'Dense grid — the whole table at a glance, like the reference. Cell names truncate; hover for the full name.' },
@@ -37,6 +53,36 @@ export function SettingsPanel({ settings, onChange, onClose }: Props) {
               <span className="radio-hint">{opt.hint}</span>
             </label>
           ))}
+        </fieldset>
+
+        <fieldset className="field">
+          <legend className="field-legend">Shuffle the board</legend>
+          <p className="field-hint">
+            Randomize positions so you memorize the pairings, not the spots. Columns stay grouped
+            by category.
+          </p>
+          <div className="field-buttons">
+            <button
+              className="btn btn--ghost"
+              onClick={() => onChange({ ...settings, germOrder: shuffledGermOrder() })}
+            >
+              Shuffle columns{isShuffled(settings.germOrder) ? ' ↻' : ''}
+            </button>
+            <button
+              className="btn btn--ghost"
+              onClick={() => onChange({ ...settings, familyOrder: shuffledFamilyOrder() })}
+            >
+              Shuffle rows{isShuffled(settings.familyOrder) ? ' ↻' : ''}
+            </button>
+            {(isShuffled(settings.germOrder) || isShuffled(settings.familyOrder)) && (
+              <button
+                className="btn btn--ghost"
+                onClick={() => onChange({ ...settings, germOrder: undefined, familyOrder: undefined })}
+              >
+                Reset order
+              </button>
+            )}
+          </div>
         </fieldset>
 
         <fieldset className="field">

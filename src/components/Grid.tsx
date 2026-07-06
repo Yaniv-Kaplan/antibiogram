@@ -6,6 +6,8 @@ import {
   GERMS,
   cellKey,
   type Antibiotic,
+  type Germ,
+  type GermGroup,
 } from '../data/antibiogram'
 import type { FeedbackState, PlacedChip } from '../game/types'
 import { Cell } from './Cell'
@@ -16,22 +18,55 @@ import { Cell } from './Cell'
 const ANTIBIOTICS_BY_FAMILY: Record<string, Antibiotic[]> = {}
 for (const a of ANTIBIOTICS) (ANTIBIOTICS_BY_FAMILY[a.familyId] ??= []).push(a)
 
-/** Group header spans, computed from how many germs each group holds. */
-const GROUP_SPANS = (() => {
-  let start = 2
-  return GERM_GROUPS.map((group) => {
-    const count = GERMS.filter((g) => g.group === group.id).length
-    const span = { group, startCol: start, count }
-    start += count
-    return span
-  })
-})()
+const GERM_GROUP_BY_ID: Record<string, GermGroup> = Object.fromEntries(
+  GERM_GROUPS.map((g) => [g.id, g]),
+)
+
+/**
+ * Apply a saved display order (array of ids) to a dataset list. Unknown/duplicate
+ * ids are dropped and any ids missing from the order are appended in natural
+ * order, so a stale saved order can never hide or duplicate a row/column.
+ */
+function applyOrder<T extends { id: string }>(items: T[], order?: string[]): T[] {
+  if (!order || order.length === 0) return items
+  const byId = new Map(items.map((i) => [i.id, i]))
+  const seen = new Set<string>()
+  const out: T[] = []
+  for (const id of order) {
+    const item = byId.get(id)
+    if (item && !seen.has(id)) {
+      out.push(item)
+      seen.add(id)
+    }
+  }
+  for (const item of items) if (!seen.has(item.id)) out.push(item)
+  return out
+}
+
+/** Group header spans as consecutive same-group runs of the ordered germs. */
+function computeGroupSpans(germs: Germ[]) {
+  const spans: { group: GermGroup; startCol: number; count: number }[] = []
+  let col = 2
+  for (let i = 0; i < germs.length; ) {
+    const groupId = germs[i].group
+    let j = i + 1
+    while (j < germs.length && germs[j].group === groupId) j++
+    spans.push({ group: GERM_GROUP_BY_ID[groupId], startCol: col, count: j - i })
+    col += j - i
+    i = j
+  }
+  return spans
+}
 
 interface Props {
   board: Record<string, PlacedChip[]>
   feedback: FeedbackState | null
   /** Family row of the current antibiotic, used to target the miss reveal. */
   activeFamilyId?: string
+  /** Column (germ id) display order; undefined = natural chart order. */
+  germOrder?: string[]
+  /** Row (family id) display order; undefined = natural chart order. */
+  familyOrder?: string[]
 }
 
 interface FamilyLayout {
@@ -62,19 +97,27 @@ function statusOf(
   return chips?.find((c) => c.antibioticId === antibioticId)?.status
 }
 
-const isPlaced = (board: Record<string, PlacedChip[]>, familyId: string, antibioticId: string) =>
-  GERMS.some((g) => board[cellKey(familyId, g.id)]?.some((c) => c.antibioticId === antibioticId))
+const isPlaced = (
+  board: Record<string, PlacedChip[]>,
+  germs: Germ[],
+  familyId: string,
+  antibioticId: string,
+) => germs.some((g) => board[cellKey(familyId, g.id)]?.some((c) => c.antibioticId === antibioticId))
 
 /**
  * Row heights follow what's actually on the board: a family is 1 lane tall until
  * a second (then third) antibiotic is placed in it, so a pill is always exactly
  * one row high and empty rows stay minimal.
  */
-function computeLayout(board: Record<string, PlacedChip[]>): Record<string, FamilyLayout> {
+function computeLayout(
+  board: Record<string, PlacedChip[]>,
+  families: { id: string }[],
+  germs: Germ[],
+): Record<string, FamilyLayout> {
   const byId: Record<string, FamilyLayout> = {}
   let row = 3 // header occupies rows 1–2
-  for (const family of FAMILIES) {
-    const present = (ANTIBIOTICS_BY_FAMILY[family.id] ?? []).filter((a) => isPlaced(board, family.id, a.id))
+  for (const family of families) {
+    const present = (ANTIBIOTICS_BY_FAMILY[family.id] ?? []).filter((a) => isPlaced(board, germs, family.id, a.id))
     const laneOf: Record<string, number> = {}
     present.forEach((a, i) => (laneOf[a.id] = i))
     const lanes = Math.max(1, present.length)
@@ -85,23 +128,28 @@ function computeLayout(board: Record<string, PlacedChip[]>): Record<string, Fami
 }
 
 /** Merge consecutive same-antibiotic, same-status cells into spanning bars. */
-function buildBars(board: Record<string, PlacedChip[]>, layout: Record<string, FamilyLayout>): Bar[] {
+function buildBars(
+  board: Record<string, PlacedChip[]>,
+  layout: Record<string, FamilyLayout>,
+  families: { id: string; colorVar: string }[],
+  germs: Germ[],
+): Bar[] {
   const bars: Bar[] = []
-  for (const family of FAMILIES) {
+  for (const family of families) {
     const { startRow, laneOf } = layout[family.id]
     for (const antibiotic of ANTIBIOTICS_BY_FAMILY[family.id] ?? []) {
       const lane = laneOf[antibiotic.id]
       if (lane === undefined) continue // not placed yet
       const rowLine = startRow + lane
       let i = 0
-      while (i < GERMS.length) {
-        const status = statusOf(board, family.id, GERMS[i].id, antibiotic.id)
+      while (i < germs.length) {
+        const status = statusOf(board, family.id, germs[i].id, antibiotic.id)
         if (!status) {
           i++
           continue
         }
         let j = i + 1
-        while (j < GERMS.length && statusOf(board, family.id, GERMS[j].id, antibiotic.id) === status) j++
+        while (j < germs.length && statusOf(board, family.id, germs[j].id, antibiotic.id) === status) j++
         bars.push({
           key: `${antibiotic.id}:${i}`,
           name: antibiotic.name,
@@ -118,7 +166,10 @@ function buildBars(board: Record<string, PlacedChip[]>, layout: Record<string, F
   return bars
 }
 
-export function Grid({ board, feedback, activeFamilyId }: Props) {
+export function Grid({ board, feedback, activeFamilyId, germOrder, familyOrder }: Props) {
+  const germs = applyOrder(GERMS, germOrder)
+  const families = applyOrder(FAMILIES, familyOrder)
+  const groupSpans = computeGroupSpans(germs)
   const isRevealTarget = (familyId: string, germId: string) =>
     !!feedback && !feedback.retry && feedback.revealGerms.includes(germId) && familyId === activeFamilyId
 
@@ -128,17 +179,17 @@ export function Grid({ board, feedback, activeFamilyId }: Props) {
     feedback.placedCell.familyId === familyId &&
     feedback.placedCell.germId === germId
 
-  const layout = computeLayout(board)
-  const bars = buildBars(board, layout)
+  const layout = computeLayout(board, families, germs)
+  const bars = buildBars(board, layout, families, germs)
 
   return (
     <div className="grid-scroll">
       <div className="grid" role="grid" aria-label="Antibiogram">
         {/* Header */}
         <div className="grid-corner" style={{ gridColumn: 1, gridRow: 1 }} />
-        {GROUP_SPANS.map(({ group, startCol, count }) => (
+        {groupSpans.map(({ group, startCol, count }) => (
           <div
-            key={group.id}
+            key={`${group.id}:${startCol}`}
             className="group-head"
             style={{ gridRow: 1, gridColumn: `${startCol} / span ${count}`, background: `var(${group.colorVar})` }}
           >
@@ -146,7 +197,7 @@ export function Grid({ board, feedback, activeFamilyId }: Props) {
           </div>
         ))}
         <div className="grid-corner grid-corner--lower" style={{ gridColumn: 1, gridRow: 2 }} />
-        {GERMS.map((germ, i) => (
+        {germs.map((germ, i) => (
           <div key={germ.id} className="germ-head" style={{ gridRow: 2, gridColumn: 2 + i }} title={germ.fullName ?? germ.label}>
             {germ.label}
             {germ.id === 'atypicals' && germ.fullName && <em className="germ-sub">{germ.fullName}</em>}
@@ -154,7 +205,7 @@ export function Grid({ board, feedback, activeFamilyId }: Props) {
         ))}
 
         {/* Row labels + droppable cells (each family is as tall as its placements) */}
-        {FAMILIES.map((family) => {
+        {families.map((family) => {
           const { startRow, lanes } = layout[family.id]
           return (
             <div key={family.id} style={{ display: 'contents' }}>
@@ -165,7 +216,7 @@ export function Grid({ board, feedback, activeFamilyId }: Props) {
               >
                 <span>{family.label}</span>
               </div>
-              {GERMS.map((germ, i) => (
+              {germs.map((germ, i) => (
                 <Cell
                   key={cellKey(family.id, germ.id)}
                   familyId={family.id}

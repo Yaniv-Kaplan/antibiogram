@@ -116,7 +116,16 @@ export default function App() {
   if (state.phase === 'end') {
     const mistakes = aggregateMistakes(state.mistakes, prevCounts.current)
     return (
-      <EndScreen stats={state.stats} remaining={state.deck.length} mistakes={mistakes} onHome={home} />
+      <EndScreen
+        stats={state.stats}
+        remaining={state.deck.length}
+        mistakes={mistakes}
+        board={state.board}
+        layout={settings.layout}
+        germOrder={settings.germOrder}
+        familyOrder={settings.familyOrder}
+        onHome={home}
+      />
     )
   }
 
@@ -142,7 +151,13 @@ export default function App() {
         onDragEnd={handleDragEnd}
       >
         <main className="playfield">
-          <Grid board={state.board} feedback={state.feedback} activeFamilyId={round.familyId} />
+          <Grid
+            board={state.board}
+            feedback={state.feedback}
+            activeFamilyId={round.familyId}
+            germOrder={settings.germOrder}
+            familyOrder={settings.familyOrder}
+          />
         </main>
 
         <div className="dock">

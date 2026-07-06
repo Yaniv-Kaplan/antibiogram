@@ -5,6 +5,10 @@ export interface Settings {
   celebrations: CelebrationMode
   tryAgain: boolean
   layout: LayoutMode
+  /** Display order of germ (column) ids; undefined = natural chart order. */
+  germOrder?: string[]
+  /** Display order of family (row) ids; undefined = natural chart order. */
+  familyOrder?: string[]
 }
 
 export const DEFAULT_SETTINGS: Settings = {
